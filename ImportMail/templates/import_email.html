@@ -57,11 +57,18 @@
 <div id="time" class="progress-text">Time: 0</div>
 <h1>Список Пользователей</h1>
 <table id="app">
-    <thead> {{token}}
+    <thead>
         <tr>
-            <th>title</th>
-            <th>data_import</th>
-            <th>message</th>
+                <th>id</th>
+                <th>id_message</th>
+                <th>bytes_message</th>
+                <th>title</th>
+                <th>data_export</th>
+                <th>data_import</th>
+                <th>from_user</th>
+                <th>message</th>
+                <th>attachment</th>
+                <th>user_id</th>
         </tr>
     </thead>
     <tbody>
@@ -128,9 +135,16 @@
         users.forEach(user => {
             const row = document.createElement('tr');
             const columns = [
+                user.id,
+                user.id_message,
+                user.bytes_message,
                 user.title,
+                user.data_export,
                 user.data_import,
+                user.from_user,
                 user.message,
+                user.attachment,
+                user.user_id,
             ];
 
             // Создаем ячейки для каждой колонки

@@ -22,6 +22,7 @@ class Email(models.Model):
     title = models.TextField(null=True)
     data_export = models.CharField(null=True)
     data_import = models.CharField(max_length=104)
+    from_user = models.CharField(null=True,max_length=104)
     message = models.TextField(null=True)
     attachment = models.CharField(null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -42,7 +42,6 @@ class WSConsumer(AsyncWebsocketConsumer):
         await self.accept()
         user = self.scope.get("user")
         user_id = user.id
-        print(user)
         # Подключение к почте и мониторинг ее
         await self.conect_to_email()
         # Получить все писма пользователя
@@ -77,6 +76,7 @@ class WSConsumer(AsyncWebsocketConsumer):
         # Получить все писма пользователя
         user_list = await get_all(user_id)
         user_list = user_list[::-1]
+        user_list = user_list[0:10]
 
         # Подключение к почте
         username = user.name
@@ -197,7 +197,13 @@ class WSConsumer(AsyncWebsocketConsumer):
                 list_attachment = []
                 print(number, ' ', res)
                 msg = email.message_from_bytes(msg[1])
-
+                Received = msg["Received"]
+                print(Received)
+                try:
+                    Received = Received.split(';')
+                    data_export = Received[1]
+                except:
+                    data_export = None
                 # Обработка сообщений
                 letter_date = email.utils.parsedate_tz(msg["Date"])
                 struct_time = letter_date[:9]
@@ -211,7 +217,7 @@ class WSConsumer(AsyncWebsocketConsumer):
                 print(date)
 
                 # # Расшифровка заголовка
-                if msg["Subject"] is None or decode_header(msg["Subject"])[0][1] is None:
+                if msg["Subject"] is None:
                     title = 'None'
                 else:
                     title = decode_header(msg["Subject"])[0][0]
@@ -219,7 +225,7 @@ class WSConsumer(AsyncWebsocketConsumer):
                         try:
                             title = title.decode(decode_header(msg["Subject"])[0][1] or 'utf-8')
                         except LookupError:
-                            pass
+                            title = title
 
                 # # Расшифровка сообщений
                 cleaned_text = None
@@ -240,19 +246,28 @@ class WSConsumer(AsyncWebsocketConsumer):
 
                         cleaned_text = re.sub(r'\n\s*\n+', '\n', decoded_text).strip()
                     if payload.get_content_disposition() == 'attachment':
-                        list_attachment.append(decode_header(payload.get_filename())[0][0].decode())
-
+                        text_content = payload.get_filename()
+                        charset = payload.get_content_charset() or "utf-8"
+                        try:
+                            decoded_text = decode_header(text_content)[0][0].decode(charset)
+                        except (UnicodeDecodeError, AttributeError):
+                            decoded_text = text_content
+                        finally:
+                            list_attachment.append(decoded_text)
+                if list_attachment == []:
+                    list_attachment = None
                 dict_ = {
                     'id_message': letter_id,
                     'bytes_message': number[1],
                     'title': title,
-                    'data_export': letter_from,
+                    'data_export': data_export,
                     'data_import': date,
+                    'from_user': letter_from,
                     'message': cleaned_text,
                     'attachment': list_attachment,
                     'user_id': user_id
                 }
+                print(dict_['title'])
                 list_dict.append(dict_.copy())
-                print(dict_)
 
         await save_db_bulk(list_dict)

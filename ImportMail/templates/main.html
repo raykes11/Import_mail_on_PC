@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добро пожаловать</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+        }
+        .container {
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .login-button {
+            background-color: #4CAF50;
+        }
+        .login-button:hover {
+            background-color: #45a049;
+        }
+        .register-button {
+            background-color: #2196F3;
+        }
+        .register-button:hover {
+            background-color: #1e87d6;
+        }
+    </style>
+</head>
+<h1>{{text}}</h1>
+<body>
+    <div class="container">
+        <a href="/login/" class="button login-button">Вход</a>
+        <a href="/registration/" class="button register-button">Регистрация</a>
+    </div>
+</body>
+</html>

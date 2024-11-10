@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прогресс-бар</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .progress-bar {
+            height: 30px;
+            width: 0;
+            background-color: #4caf50;
+            border-radius: 5px;
+            transition: width 0.4s;
+        }
+        .progress-text-overlay {
+            position: absolute;
+            width: 100%;
+            height: 30px;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: black; /* Изменяем цвет текста на черный */
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .progress-text {
+            margin-top: 10px;
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="progress-container">
+    <div id="progress-bar" class="progress-bar"></div>
+    <div id="progress-text-overlay" class="progress-text-overlay">Добавлено сообщений: 0 / Найдено сообщений: 100</div>
+</div>
+<div id="time" class="progress-text">Time: 0</div>
+<h1>Список Пользователей</h1>
+<table id="app">
+    <thead> {{token}}
+        <tr>
+            <th>title</th>
+            <th>data_import</th>
+            <th>message</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Данные пользователей будут добавлены сюда через JavaScript -->
+    </tbody>
+</table>
+
+<script>
+    let add_email = 0; // Максимальное значение прогресса
+    let email = 0;         // Текущее значение прогресса
+    let time = 0;          // Время в секундах
+
+    // Обновление прогресс-бара
+    function updateProgressBar() {
+        const progressBar = document.getElementById("progress-bar");
+        const progressTextOverlay = document.getElementById("progress-text-overlay");
+        const timeDisplay = document.getElementById("time");
+
+        // Обновление прогресса
+        let progress = Math.min((email / add_email) * 100, 100);
+        progressBar.style.width = progress + "%";
+        progressTextOverlay.textContent = `Добавлено сообщений: ${email} / Необходимо добавить сообщений: ${add_email}  / Всего сообщений: ${max_email}`;
+
+        // Проверка завершения загрузки
+        if (email >= add_email) {
+            progressTextOverlay.textContent = "Загрузка завершена";
+        }
+
+        // Обновление времени
+        if (time <= -1) {
+            progressTextOverlay.textContent = "Идет загрузка";
+        }
+        timeDisplay.textContent = `Оставшееся время: ${time} минут`;
+    }
+
+    // Получаем токен из cookies или localStorage
+    let token = "{{ token }}"
+
+    // Устанавливаем WebSocket соединение
+    let socket = new WebSocket("ws://127.0.0.1:8000/st/?token=" + token);
+
+    // Обработка сообщений от сервера
+    socket.onmessage = function(event) {
+        // Парсим данные от сервера
+        const data = JSON.parse(event.data);
+
+        // Обновляем email с сервера
+        email = data.email || 0;
+        add_email = data.add_email || 0;
+        max_email = data.max_email || 1000;
+        time = data.time || 0;
+
+        // Обновляем прогресс-бар
+        updateProgressBar();
+
+        // Обновляем список пользователей
+        const users = data.user || [];
+        const tableBody = document.querySelector('#app tbody');
+
+        // Очищаем текущий список пользователей
+        tableBody.innerHTML = '';
+
+        // Добавляем каждого пользователя как строку таблицы
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            const columns = [
+                user.title,
+                user.data_import,
+                user.message,
+            ];
+
+            // Создаем ячейки для каждой колонки
+            columns.forEach(columnData => {
+                const cell = document.createElement('td');
+                cell.textContent = columnData || '';
+                row.appendChild(cell);
+            });
+
+            // Добавляем строку в тело таблицы
+            tableBody.appendChild(row);
+        });
+    };
+
+</script>
+
+</body>
+</html>
